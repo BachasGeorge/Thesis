@@ -36,16 +36,16 @@ def move_towards(nodes, edges, position, target):
             return nodes, position, True
     return nodes, position, False
 
-def new_target():
+def new_target(total_weights):
     targets = [x for x in total_weights if nodes[total_weights.index(x)][1] == 0]
     if not targets:
         return -1
-    target = total_weights.index(min(targets))
-    return target
+    return total_weights.index(min(targets))
 
 # ────── Setup ──────
 
 SIZE = 50
+
 nodes = [[random.randint(230, 250), 0] for _ in range(SIZE)]
 edges = [random.randint(1, 5) for _ in range(SIZE-1)]
 
@@ -59,7 +59,7 @@ print(f"Edges         : {edges}")
 # ────── Main ──────
 
 total_weights = calculate_weights(nodes, edges, position)
-target = new_target()
+target = new_target(total_weights)
 
 while target != -1:
     print(f"\nPosition: {position}  →  Target: {target}  "
@@ -71,7 +71,7 @@ while target != -1:
         break
 
     total_weights = calculate_weights(nodes, edges, position)
-    target = new_target()
+    target = new_target(total_weights)
     print(f"Nodes: {nodes}")
 else:
     print("\nAll nodes were visited successfully!")
