@@ -1,6 +1,6 @@
 import random
 
-def calculate_weights(nodes, edges):
+def calculate_weights(nodes, edges, position):
 
     weights = []
 
@@ -15,63 +15,63 @@ def calculate_weights(nodes, edges):
     return weights
 
 
-def step(nodes, edges):
+def step(nodes, edges, position, direction):
 
+    edge_cost = edges[position] if direction == 1 else edges[position - 1]
+    new_position = position + direction
     for i in range(0, len(nodes)):
         if nodes[i][1] == 0:
-            nodes[i][0] -= edges[position - 1]
+            nodes[i][0] -= edge_cost
             if nodes[i][0] < 0:
-                print(f"Node {i} was not reached before the requested time.")
-                print(nodes)
-                exit()
-    return nodes
+                print(f"Node {i} expired before it could be visited!")
+                return nodes, new_position, True  # True = failure
+    nodes[new_position][1] = 1
+    return nodes, new_position, False
+
+def move_towards(nodes, edges, position, target):
+    direction = 1 if target > position else -1
+    while position != target:
+        nodes, position, failed = step(nodes, edges, position, direction)
+        if failed:
+            return nodes, position, True
+    return nodes, position, False
 
 def new_target():
     targets = [x for x in total_weights if nodes[total_weights.index(x)][1] == 0]
-    print(targets)
     if not targets:
         return -1
     target = total_weights.index(min(targets))
     return target
 
-#main
+# ────── Setup ──────
 
-nodes = []
-edges = []
-total_weights = []
-size = 50
-position =  random.randint(0, size-1)
-target = 0
-ALL_VISITED = False
+SIZE = 50
+nodes = [[random.randint(230, 250), 0] for _ in range(SIZE)]
+edges = [random.randint(1, 5) for _ in range(SIZE-1)]
 
-for i in range(size):
-    nodes.append([random.randint(230, 250),0])
-    edges.append(random.randint(1, 5))
-
+position =  random.randint(0, SIZE-1)
 nodes[position][1] = 1
-total_weights = calculate_weights(nodes, edges)
-print(nodes)
-print(total_weights)
 
+print(f"Starting at node {position}")
+print(f"Initial nodes : {nodes}")
+print(f"Edges         : {edges}")
+
+# ────── Main ──────
+
+total_weights = calculate_weights(nodes, edges, position)
 target = new_target()
 
 while target != -1:
-    print(f"Current position: {position}")
-    print(f"Current target: {target}")
-    if position > target:
-        while position >= target:
-            nodes = step(nodes,edges)
-            total_weights = calculate_weights(nodes, edges)
-            position -= 1
-            nodes[position][1] += 1
-        position += 1
-    else:
-        while position <= target:
-            nodes = step(nodes,edges)
-            total_weights = calculate_weights(nodes, edges)
-            position += 1
-            nodes[position][1] += 1
-        position -=1
+    print(f"\nPosition: {position}  →  Target: {target}  "
+          f"(effective weight: {total_weights[target]:.1f})")
+
+    nodes, position, failed = move_towards(nodes, edges, position, target)
+    if failed:
+        print("Mission failed — a node expired.")
+        break
+
+    total_weights = calculate_weights(nodes, edges, position)
     target = new_target()
-    print(nodes)
-print("All nodes were visited.")
+    print(f"Nodes: {nodes}")
+else:
+    print("\nAll nodes were visited successfully!")
