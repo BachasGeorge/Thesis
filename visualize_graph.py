@@ -6,8 +6,8 @@ from main import BotSimulation          # reuse all logic from main.py
 
 # ────── Config ──────
 
-SIZE          = 25
-VALUE_RANGE   = (230, 250)
+SIZE          = 20
+VALUE_RANGE   = (80, 150)
 EDGE_RANGE    = (1, 5)
 
 # ────── Colors ──────

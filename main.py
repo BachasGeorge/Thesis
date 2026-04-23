@@ -24,7 +24,7 @@ def step(nodes, edges, position, direction):
             nodes[i][0] -= edge_cost
             if nodes[i][0] < 0:
                 print(f"Node {i} expired before it could be visited!")
-                return nodes, new_position, True, 1  # True = failure
+                return nodes, new_position, True, i  # True = failure
     nodes[new_position][1] = 1
     return nodes, new_position, False, -1
 
@@ -33,7 +33,18 @@ def get_target(nodes, edges, position):
     unvisited = [(weights[i], i) for i in range(len(nodes)) if nodes[i][1] == 0]
     if not unvisited:
         return -1
-    return min(unvisited)[1]
+    selected = min(unvisited)[1]
+    if position != 0 and position != len(nodes)-1:
+        if selected <= (len(nodes)-1)/2 <= position:
+            cost_to_reach_side = sum(edges[position:len(edges)-1])
+            if min(unvisited)[0] - 2*cost_to_reach_side >= 0:
+                selected = len(nodes)-1
+        if selected >= (len(nodes)-1)/2 >= position:
+            cost_to_reach_side = sum(edges[0:position-1])
+            if min(unvisited)[0] - 2*cost_to_reach_side >= 0:
+                selected = 0
+    print(f"New target: {selected}")
+    return selected
 
 
 # ────── Simulation class ──────
@@ -45,7 +56,7 @@ class BotSimulation:
     node toward its current target and returns a status string.
     """
 
-    def __init__(self, size=25, value_range=(230, 250), edge_range=(1, 5)):
+    def __init__(self, size=20, value_range=(80, 150), edge_range=(1, 5)):
         self.size = size
         self.nodes = [[random.randint(*value_range), 0] for _ in range(size)]
         self.edges = [random.randint(*edge_range) for _ in range(size - 1)]
@@ -110,7 +121,7 @@ class BotSimulation:
 # ────── CLI demo (runs when executed directly) ──────
 
 if __name__ == "__main__":
-    sim = BotSimulation(size=18)
+    sim = BotSimulation(size=20)
     print("\nPress Enter to advance one step, or type 'q' to quit.\n")
     while not sim.done:
         user = input(f"[Step {sim.step_count}] Press Enter / q: ").strip().lower()
