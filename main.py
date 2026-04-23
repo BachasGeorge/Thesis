@@ -24,54 +24,101 @@ def step(nodes, edges, position, direction):
             nodes[i][0] -= edge_cost
             if nodes[i][0] < 0:
                 print(f"Node {i} expired before it could be visited!")
-                return nodes, new_position, True  # True = failure
+                return nodes, new_position, True, 1  # True = failure
     nodes[new_position][1] = 1
-    return nodes, new_position, False
+    return nodes, new_position, False, -1
 
-def move_towards(nodes, edges, position, target):
-    direction = 1 if target > position else -1
-    while position != target:
-        nodes, position, failed = step(nodes, edges, position, direction)
-        if failed:
-            return nodes, position, True
-    return nodes, position, False
-
-def new_target(total_weights):
-    targets = [x for x in total_weights if nodes[total_weights.index(x)][1] == 0]
-    if not targets:
+def get_target(nodes, edges, position):
+    weights = calculate_weights(nodes, edges, position)
+    unvisited = [(weights[i], i) for i in range(len(nodes)) if nodes[i][1] == 0]
+    if not unvisited:
         return -1
-    return total_weights.index(min(targets))
+    return min(unvisited)[1]
 
-# ────── Setup ──────
 
-SIZE = 50
+# ────── Simulation class ──────
 
-nodes = [[random.randint(230, 250), 0] for _ in range(SIZE)]
-edges = [random.randint(1, 5) for _ in range(SIZE-1)]
+class BotSimulation:
+    """Encapsulates all mutable simulation state.
 
-position =  random.randint(0, SIZE-1)
-nodes[position][1] = 1
+    Call `.advance()` once per button press; it moves the bot exactly one
+    node toward its current target and returns a status string.
+    """
 
-print(f"Starting at node {position}")
-print(f"Initial nodes : {nodes}")
-print(f"Edges         : {edges}")
+    def __init__(self, size=25, value_range=(230, 250), edge_range=(1, 5)):
+        self.size = size
+        self.nodes = [[random.randint(*value_range), 0] for _ in range(size)]
+        self.edges = [random.randint(*edge_range) for _ in range(size - 1)]
+        self.position = random.randint(0, size - 1)
+        self.nodes[self.position][1] = 1
 
-# ────── Main ──────
+        self.target = get_target(self.nodes, self.edges, self.position)
+        self.done = False
+        self.failed = False
+        self.step_count = 0
+        self.last_from = -1        # previous position (for edge highlighting)
+        self.expired_node = -1
 
-total_weights = calculate_weights(nodes, edges, position)
-target = new_target(total_weights)
+        print(f"Starting at node {self.position}")
+        print(f"Node values : {[n[0] for n in self.nodes]}")
+        print(f"Edges       : {self.edges}")
+        print(f"First target: {self.target}")
 
-while target != -1:
-    print(f"\nPosition: {position}  →  Target: {target}  "
-          f"(effective weight: {total_weights[target]:.1f})")
+    def advance(self):
+        """Move one step toward the current target.
 
-    nodes, position, failed = move_towards(nodes, edges, position, target)
-    if failed:
-        print("Mission failed — a node expired.")
-        break
+        Returns a human-readable status string.
+        """
+        if self.done:
+            return "Simulation already finished."
 
-    total_weights = calculate_weights(nodes, edges, position)
-    target = new_target(total_weights)
-    print(f"Nodes: {nodes}")
-else:
-    print("\nAll nodes were visited successfully!")
+        if self.target == -1:
+            self.done = True
+            return "All nodes visited successfully!"
+
+        direction = 1 if self.target > self.position else -1
+        previous_position = self.position
+        self.nodes, self.position, failed, expired = step(self.nodes, self.edges, self.position, direction)
+        self.last_from = previous_position
+        self.step_count += 1
+
+        if failed:
+            self.failed = True
+            self.done = True
+            self.expired_node = expired
+            msg = f"Node {expired} expired — mission failed!"
+            print(msg)
+            return msg
+
+        msg = f"Step {self.step_count}: moved {previous_position} → {self.position}  (target: {self.target})"
+        print(msg)
+
+        # Arrived at target — pick next one
+        if self.position == self.target:
+            self.target = get_target(self.nodes, self.edges, self.position)
+            if self.target == -1:
+                self.done = True
+                print("All nodes visited successfully!")
+
+        return msg
+
+    @property
+    def visited_count(self):
+        return sum(1 for n in self.nodes if n[1] == 1)
+
+
+# ────── CLI demo (runs when executed directly) ──────
+
+if __name__ == "__main__":
+    sim = BotSimulation(size=18)
+    print("\nPress Enter to advance one step, or type 'q' to quit.\n")
+    while not sim.done:
+        user = input(f"[Step {sim.step_count}] Press Enter / q: ").strip().lower()
+        if user == "q":
+            break
+        msg = sim.advance()
+        print(f"  {msg}")
+        print(f"  Visited: {sim.visited_count}/{sim.size}  |  "
+              f"Position: {sim.position}  |  Next target: {sim.target}")
+    if sim.done and not sim.failed:
+        print("\nAll nodes visited successfully!")
