@@ -11,5 +11,6 @@ The idea here is that we have a line graph with nodes where the bot tries to rea
 expire with the least moves possible. In order to run the simulation you need to have installed Python (the version of
 I used is 3.14) the files LineGraph.py and visualize_graph.py. To run the simulation put both files in the same folder
 and run in the command prompt the line 'python visualize_graph.py'. A window will pop, and you will see something like this:
-![Figure_1.png](../Figure_1.png) . By pressing the button "Step" the bot(green circle) moves towards the target
-(orange circle). Each node the bot goes though turns blue, meaning it reached this node before it expired.
+<img width="1400" height="500" alt="Figure_1" src="https://github.com/user-attachments/assets/824e052f-3a15-4125-bfa0-902d58b968f4" />
+By pressing the button "Step" the bot(green circle) moves towards the target(orange circle).
+Each node the bot goes though turns blue, meaning it reached this node before it expired.
