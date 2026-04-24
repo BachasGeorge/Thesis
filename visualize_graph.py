@@ -6,9 +6,9 @@ from LineGraph import BotSimulation          # reuse all logic from LineGraph.py
 
 # ────── Config ──────
 
-SIZE          = 20
-VALUE_RANGE   = (80, 150)
-EDGE_RANGE    = (1, 5)
+SIZE          = 18
+VALUE_RANGE   = (80, 100)
+EDGE_RANGE    = (3, 5)
 
 # ────── Colors ──────
 

@@ -47,6 +47,107 @@ def get_target(nodes, edges, position):
     return selected
 
 
+# ────── Route planning ──────
+
+def simulate_sweep(nodes, edges, position, first_end, second_end):
+    """Simulate a full two-leg sweep on *copies* of the node weights.
+
+    Leg 1: position -> first_end
+    Leg 2: first_end -> second_end
+
+    Returns a list of node indices that would expire (reach weight <= 0 before
+    being visited) during this sweep, in the order they expire.
+    The actual nodes/edges lists are never mutated.
+    """
+    weights = [n[0] for n in nodes]
+    visited = [n[1] for n in nodes]
+    visited[position] = 1
+
+    would_expire = []
+
+    def travel(frm, to):
+        direction = 1 if to > frm else -1
+        cur = frm
+        while cur != to:
+            edge_cost = edges[cur] if direction == 1 else edges[cur - 1]
+            cur += direction
+            for i in range(len(weights)):
+                if not visited[i]:
+                    weights[i] -= edge_cost
+                    if weights[i] <= 0 and i not in would_expire:
+                        would_expire.append(i)
+            visited[cur] = 1
+
+    travel(position, first_end)
+    travel(first_end, second_end)
+    return would_expire
+
+
+def plan_route(nodes, edges, position):
+    """Decide the committed sweep direction at the start of a run.
+
+    Special cases:
+      - Bot already at node 0   -> only one leg: 0 -> right_end
+      - Bot already at right_end -> only one leg: right_end -> 0
+
+    General case (bot somewhere in the middle):
+      - Try nearer-end-first (optimal step count).
+      - Simulate both legs; if any node would expire, warn and try the
+        farther-end-first path instead.
+      - Return whichever path is chosen, along with is_detour flag.
+
+    Returns (sweep_targets, is_detour)
+      sweep_targets -- ordered list of end-nodes the bot must reach in turn
+      is_detour     -- True when we flipped to farther-end-first
+    """
+    right_end = len(nodes) - 1
+
+    # ── Already at an end: only one leg needed ──
+    if position == 0:
+        expiries = simulate_sweep(nodes, edges, position, right_end, right_end)
+        # single leg: 0 -> right_end (second_end == first_end means no 2nd leg)
+        expiries = simulate_sweep(nodes, edges, position, right_end, right_end)
+        if expiries:
+            for node_idx in expiries:
+                print(f"Node {node_idx} will expire before visiting the whole graph")
+        return [right_end], False
+
+    if position == right_end:
+        expiries = simulate_sweep(nodes, edges, position, 0, 0)
+        if expiries:
+            for node_idx in expiries:
+                print(f"Node {node_idx} will expire before visiting the whole graph")
+        return [0], False
+
+    # ── General case: bot is in the middle ──
+    dist_left = position  # steps to reach node 0
+    dist_right = right_end - position  # steps to reach node right_end
+
+    # Nearer end is the optimal first leg
+    if dist_left < dist_right:
+        near_end, far_end = 0, right_end
+    else:
+        near_end, far_end = right_end, 0
+
+    # Check nearer-end-first
+    expiries = simulate_sweep(nodes, edges, position, near_end, far_end)
+    if not expiries:
+        return [near_end, far_end], False
+
+    for node_idx in expiries:
+        print(f"Node {node_idx} will expire before visiting the whole graph")
+
+    # Fallback: farther-end-first
+    expiries_alt = simulate_sweep(nodes, edges, position, far_end, near_end)
+    if not expiries_alt:
+        return [far_end, near_end], True
+
+    for node_idx in expiries_alt:
+        print(f"Node {node_idx} will expire before visiting the whole graph")
+
+    return [far_end, near_end], True
+
+
 # ────── Simulation class ──────
 
 class BotSimulation:
@@ -55,14 +156,22 @@ class BotSimulation:
     node toward its current target and returns a status string.
     """
 
-    def __init__(self, size=20, value_range=(80, 150), edge_range=(1, 5)):
+    def __init__(self, size=18, value_range=(80, 100), edge_range=(3, 5)):
         self.size = size
         self.nodes = [[random.randint(*value_range), 0] for _ in range(size)]
         self.edges = [random.randint(*edge_range) for _ in range(size - 1)]
         self.position = random.randint(0, size - 1)
         self.nodes[self.position][1] = 1
 
-        self.target = get_target(self.nodes, self.edges, self.position)
+        #self.target = get_target(self.nodes, self.edges, self.position)
+
+        # Plan the full route once and commit
+        sweep_targets, is_detour = plan_route(self.nodes, self.edges, self.position)
+        # The bot visits near_end first, then far_end
+        self.sweep_targets = sweep_targets
+        self.target = self.sweep_targets[0]
+        self.is_detour = is_detour
+
         self.done = False
         self.failed = False
         self.step_count = 0
@@ -80,9 +189,11 @@ class BotSimulation:
         if self.done:
             return "Simulation already finished."
 
+        """
         if self.target == -1:
             self.done = True
             return "All nodes visited successfully!"
+        """
 
         direction = 1 if self.target > self.position else -1
         previous_position = self.position
@@ -101,12 +212,26 @@ class BotSimulation:
         msg = f"Step {self.step_count}: moved {previous_position} → {self.position}  (target: {self.target})"
         print(msg)
 
+        """
         # Arrived at target — pick next one
         if self.position == self.target:
             self.target = get_target(self.nodes, self.edges, self.position)
             if self.target == -1:
                 self.done = True
                 print("All nodes visited successfully!")
+        """
+
+        # Reached the end of the current sweep leg -- move to next leg if any
+        if self.position == self.target:
+            self.sweep_targets.pop(0)
+            if self.sweep_targets:
+                self.target = self.sweep_targets[0]
+                self.is_detour = False  # second leg is always a plain sweep
+                print(f"  Reached end. Now sweeping to {self.target}.")
+            else:
+                self.done = True
+                print("All nodes visited successfully!")
+
 
         return msg
 
@@ -118,7 +243,7 @@ class BotSimulation:
 # ────── CLI demo (runs when executed directly) ──────
 
 if __name__ == "__main__":
-    sim = BotSimulation(size=20)
+    sim = BotSimulation(size=18)
     print("\nPress Enter to advance one step, or type 'q' to quit.\n")
     while not sim.done:
         user = input(f"[Step {sim.step_count}] Press Enter / q: ").strip().lower()

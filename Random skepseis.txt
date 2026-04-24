@@ -14,3 +14,24 @@ Otan to agent pernaei apo to shmeio to flag triggarei.
 Mporoume apo kathe shmeio na perasoume oses fores theloume.
 
 -------------------------------------------v2------------------------------------------------------
+
+To bot epilegei eite to akro tou grafhmatos pou einai pio kotna se auto eite to node pou lhgei prwto.
+H epilogh ginetai me vash th upothesi "an paw sto akro prwta prolavainw na ftasw kai to shmeio pou lhgei prwto?"
+An h apanthsei edw einai nai tote paei prwta sto akro, an oxi tote paei prwta sto node. Me auto to tropo, !!!AN!!! to
+grafima mporei na luthei (na perasei dld to bot apo ola ta node), o megistos arithmos vhmatwn einai n-1 + (n-1)/2 kai o
+elaxistos einai n-1, opou n o arithmos twn node.
+
+!!!!!!!!!PROVLIMA POU PREPEI NA LUTHEI!!!!!!!!!!!
+
+Epilogi metakinisis an den mporoume na perasoume apo ola ta node. Prepei na mpei check prin kanei to prwto vhma to bot
+gia na fanei an mporei na perasei apo pantou. An den mporei tote tha prepei na ginetai ek neou upologismos tetoios wste
+to bot na perasei apo oso to dunato perissotera shmeia.
+Skepsh A: an ena node den to prolavainw tote to bgazw teleiws ektos kathos kai kathe node pou einai meta apo auto.
+Skepsh B: idanika theloume to bot na ftanei ews ena akro. Ftanontas ena akro shmainei oti ola ta endiamesa node einai ok.
+Pithani lush an vroume kapoio node to opoio den mporoume na ftasoume : metakinisi tou kontinoterou akrou sto bot kata 1
+pio konta sto bot (praktika agnooume to node pou htan prin akro) kai epanaupologismos. Theloume na ftasoume to allo akro.
+An den mporoume na to ftasoume tote to metakinoume kai auto kata 1 pros to bot. Epanalamvanoume mexri to bot na mporei
+na ftasei kai ta duo nea akra. (!!!PITHANI ALLAGH VELTISTOPOIHSHS!!! EPILEGOUME TO AKRO POU TO EDGE TOU EINAI MEGALUTERO
+KAI TO METAKINOUME) An me auto to tropo episkefthoume perissotera nodes apo to na phgainame kateu8eian sto node
+pou lugei prwto tote to protimame. !!!!SHMEIWSH GIA AUTH TH LUSH!!!!! PAIZEI ROLO KAI POSA VHMATA KANOUME. Edw dhladh
+paizei rolo kai ti zhtame, xrono epilushs h plhrwthta lushs.
