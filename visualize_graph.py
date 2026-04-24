@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.widgets import Button
 
-from main import BotSimulation          # reuse all logic from main.py
+from LineGraph import BotSimulation          # reuse all logic from LineGraph.py
 
 # ────── Config ──────
 
@@ -53,8 +53,8 @@ def draw(ax, sim):
     for i in range(len(sim.edges)):
         x1, x2 = xs[i], xs[i + 1]
         active = frm != -1 and (
-            (frm < pos and i == frm) or
-            (frm > pos and i == pos)
+                (pos > frm == i) or
+                (frm > pos and i == pos)
         )
         color = COLOR_EDGE_MOVE if active else COLOR_EDGE
         lw    = 2.5            if active else 1.5

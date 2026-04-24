@@ -50,8 +50,7 @@ def get_target(nodes, edges, position):
 # ────── Simulation class ──────
 
 class BotSimulation:
-    """Encapsulates all mutable simulation state.
-
+    """
     Call `.advance()` once per button press; it moves the bot exactly one
     node toward its current target and returns a status string.
     """
@@ -76,10 +75,8 @@ class BotSimulation:
         print(f"First target: {self.target}")
 
     def advance(self):
-        """Move one step toward the current target.
 
-        Returns a human-readable status string.
-        """
+        # Move one step toward the current target.
         if self.done:
             return "Simulation already finished."
 
