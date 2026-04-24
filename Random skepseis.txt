@@ -1,3 +1,5 @@
+--------------------------------------------v1----------------------------------------------------
+
 Loipon auto pou prepei na kanoume einai praktika mia grammi panw sthn opoia uparxoun shmeia.
 Ta shmeia auta exoun ena varos(arithmo) o opoios deixnei mesa se poses kinhseis prepei na ftasoume se auto to shmeio.
 Gia na pas apo shmeio se shmeio o dromos exei epishs ena varos.
@@ -6,7 +8,9 @@ Mia aplh ulopoihsh tha htan 2 lists, mia me ta vari twn shmeiwn kai mia me tous 
 Ara an ta shmeia einai X ara h lista exei mhkos X oi dromoi einai X-1.
 Kathe keli tis listas dromoi einai "anamesa" sta antistoixa kelia shmeiwn.
 Ara o dromos Y einai anamesa sto shmeio Y kai Y+1.
-As dokimasoume arxika auto me to robot agent na ksekinaei apo to prwto shmeio kai na prepei na perasei apo ola.
+As dokimasoume arxika auto me to robot agent na ksekinaei apo random shmeio kai na prepei na perasei apo ola.
 Tha prepei to kathe shmeio na exei ena flag.
 Otan to agent pernaei apo to shmeio to flag triggarei.
 Mporoume apo kathe shmeio na perasoume oses fores theloume.
+
+-------------------------------------------v2------------------------------------------------------
