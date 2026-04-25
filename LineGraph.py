@@ -1,6 +1,17 @@
 import random
 
 def calculate_weights(nodes, edges, position):
+    """
+    Calculates the initial weight of the nodes in relation to
+    the position the bot starts from. The weight of each node is
+    reduced by the sum of the weight of the edges that the bot has
+    traverse in order to get to that node.
+    """
+
+    # IMPORTANT NOTE
+    # This is kind of useless right now but will be really important later
+    # when the bot will choose which node to visit and not just choose
+    # the closest edge of the graph.
 
     weights = []
 
@@ -16,7 +27,11 @@ def calculate_weights(nodes, edges, position):
 
 
 def step(nodes, edges, position, direction):
-
+    """
+    The bot moves by one node closer to the target node.
+    Marks each node it passes through as visited if not already marked.
+    If a node expires before it gets visited return a failure check.
+    """
     edge_cost = edges[position] if direction == 1 else edges[position - 1]
     new_position = position + direction
     for i in range(0, len(nodes)):
@@ -111,6 +126,9 @@ def plan_route(nodes, edges, position):
     return [near_end, far_end] # general
 
 # ────── Simulation class ──────
+
+# This part is generated, it does basic staff like the initialization.
+# Also the def advance() is needed for the visualize_graph.py file.
 
 class BotSimulation:
     """
