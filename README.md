@@ -9,7 +9,7 @@ through all of them.
 
 The idea here is that we have a line graph with nodes where the bot tries to reach as many nodes as possible before they
 expire with the least moves possible. In order to run the simulation you need to have Python installed (the version I used
-is 3.14), the files LineGraph.py and visualize_graph.py. To run the simulation put both files in the same folder and
+is 3.14), the files LineGraph.py and visualize_graph.py. You also need the "matplotlib" library installed. To run the simulation put both files in the same folder and
 run in the command prompt the line 'python visualize_graph.py'. A window will pop, and you will see something like this:
 
 <img width="1400" height="500" alt="Figure_1" src="https://github.com/user-attachments/assets/4fa06b51-28a8-4c0c-b3b2-5f80952cfb63" />
