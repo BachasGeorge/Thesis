@@ -23,11 +23,12 @@ def step(nodes, edges, position, direction):
         if nodes[i][1] == 0:
             nodes[i][0] -= edge_cost
             if nodes[i][0] < 0:
-                print(f"Node {i} expired before it could be visited!")
                 return nodes, new_position, True, i  # True = failure
     nodes[new_position][1] = 1
     return nodes, new_position, False, -1
 
+# First steps when I was just picking the smallest node, maybe I'll need it later.
+"""
 def get_target(nodes, edges, position):
     weights = calculate_weights(nodes, edges, position)
     unvisited = [(weights[i], i) for i in range(len(nodes)) if nodes[i][1] == 0]
@@ -45,79 +46,52 @@ def get_target(nodes, edges, position):
                 selected = 0
     print(f"New target: {selected}")
     return selected
-
+"""
 
 # ────── Route planning ──────
 
-def simulate_sweep(nodes, edges, position, first_end, second_end):
-    """Simulate a full two-leg sweep on *copies* of the node weights.
-
-    Leg 1: position -> first_end
-    Leg 2: first_end -> second_end
-
-    Returns a list of node indices that would expire (reach weight <= 0 before
-    being visited) during this sweep, in the order they expire.
-    The actual nodes/edges lists are never mutated.
+def expires(nodes, edges, position, to):
     """
-    weights = [n[0] for n in nodes]
-    visited = [n[1] for n in nodes]
-    visited[position] = 1
-
-    would_expire = []
-
-    def travel(frm, to):
-        direction = 1 if to > frm else -1
-        cur = frm
-        while cur != to:
-            edge_cost = edges[cur] if direction == 1 else edges[cur - 1]
-            cur += direction
-            for i in range(len(weights)):
-                if not visited[i]:
-                    weights[i] -= edge_cost
-                    if weights[i] <= 0 and i not in would_expire:
-                        would_expire.append(i)
-            visited[cur] = 1
-
-    travel(position, first_end)
-    travel(first_end, second_end)
-    return would_expire
+    Simulates the way we chose to traverse the graph and checks if a node expires this way.
+    Returns the index of the node that expires or -1.
+    """
+    simulated_nodes = [n[:] for n in nodes] # make a copy of the list so the nodes visited in the simulation won't get marked
+    direction = 1 if to > position else -1
+    current = position
+    while current != to:
+        simulated_nodes, current, failed, i = step(simulated_nodes, edges, current, direction)
+        if failed :
+            return simulated_nodes, i
+    return simulated_nodes, -1
 
 
 def plan_route(nodes, edges, position):
-    """Decide the committed sweep direction at the start of a run.
-
+    """
     Special cases:
       - Bot already at node 0   -> only one leg: 0 -> right_end
       - Bot already at right_end -> only one leg: right_end -> 0
 
     General case (bot somewhere in the middle):
       - Try nearer-end-first (optimal step count).
-      - Simulate both legs; if any node would expire, warn and try the
-        farther-end-first path instead.
-      - Return whichever path is chosen, along with is_detour flag.
+      - Simulate both legs; if any node would expire, print a warning (will solve this later)
+      - Return whichever path is chosen
 
-    Returns (sweep_targets, is_detour)
+    Returns (sweep_targets)
       sweep_targets -- ordered list of end-nodes the bot must reach in turn
-      is_detour     -- True when we flipped to farther-end-first
     """
+
     right_end = len(nodes) - 1
 
     # ── Already at an end: only one leg needed ──
     if position == 0:
-        expiries = simulate_sweep(nodes, edges, position, right_end, right_end)
-        # single leg: 0 -> right_end (second_end == first_end means no 2nd leg)
-        expiries = simulate_sweep(nodes, edges, position, right_end, right_end)
-        if expiries:
-            for node_idx in expiries:
-                print(f"Node {node_idx} will expire before visiting the whole graph")
-        return [right_end], False
+        _, expired_node = expires(nodes, edges, position, right_end)
+        if expired_node != -1 :
+            print(f"!!!ATTENTION!!!\nNode {expired_node} will expire.\n!!!ATTENTION!!!")
 
     if position == right_end:
-        expiries = simulate_sweep(nodes, edges, position, 0, 0)
-        if expiries:
-            for node_idx in expiries:
-                print(f"Node {node_idx} will expire before visiting the whole graph")
-        return [0], False
+        _, expired_node = expires(nodes, edges, position, 0)
+        if expired_node != -1 :
+            print(f"!!!ATTENTION!!!\nNode {expired_node} will expire.\n!!!ATTENTION!!!")
 
     # ── General case: bot is in the middle ──
     dist_left = position  # steps to reach node 0
@@ -129,24 +103,12 @@ def plan_route(nodes, edges, position):
     else:
         near_end, far_end = right_end, 0
 
-    # Check nearer-end-first
-    expiries = simulate_sweep(nodes, edges, position, near_end, far_end)
-    if not expiries:
-        return [near_end, far_end], False
+    simulated_nodes, expired_node = expires(nodes, edges, position, near_end)
+    _, expired_node = expires(simulated_nodes, edges, near_end, far_end)
+    if expired_node != -1:
+        print(f"!!!ATTENTION!!!\nNode {expired_node} will expire.\n!!!ATTENTION!!!")
 
-    for node_idx in expiries:
-        print(f"Node {node_idx} will expire before visiting the whole graph")
-
-    # Fallback: farther-end-first
-    expiries_alt = simulate_sweep(nodes, edges, position, far_end, near_end)
-    if not expiries_alt:
-        return [far_end, near_end], True
-
-    for node_idx in expiries_alt:
-        print(f"Node {node_idx} will expire before visiting the whole graph")
-
-    return [far_end, near_end], True
-
+    return [near_end, far_end] # general
 
 # ────── Simulation class ──────
 
@@ -163,14 +125,12 @@ class BotSimulation:
         self.position = random.randint(0, size - 1)
         self.nodes[self.position][1] = 1
 
-        #self.target = get_target(self.nodes, self.edges, self.position)
 
         # Plan the full route once and commit
-        sweep_targets, is_detour = plan_route(self.nodes, self.edges, self.position)
+        sweep_targets = plan_route(self.nodes, self.edges, self.position)
         # The bot visits near_end first, then far_end
         self.sweep_targets = sweep_targets
         self.target = self.sweep_targets[0]
-        self.is_detour = is_detour
 
         self.done = False
         self.failed = False
@@ -188,12 +148,6 @@ class BotSimulation:
         # Move one step toward the current target.
         if self.done:
             return "Simulation already finished."
-
-        """
-        if self.target == -1:
-            self.done = True
-            return "All nodes visited successfully!"
-        """
 
         direction = 1 if self.target > self.position else -1
         previous_position = self.position
