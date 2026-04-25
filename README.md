@@ -12,8 +12,12 @@ expire with the least moves possible. In order to run the simulation you need to
 is 3.14), the files LineGraph.py and visualize_graph.py. To run the simulation put both files in the same folder and
 run in the command prompt the line 'python visualize_graph.py'. A window will pop, and you will see something like this:
 <img width="1400" height="500" alt="Figure_1" src="https://github.com/user-attachments/assets/4fa06b51-28a8-4c0c-b3b2-5f80952cfb63" />
-By pressing the button "Step" the bot(green circle) moves towards the target(orange circle).
-Each node the bot goes though turns blue, meaning it reached this node before it expired.
+By pressing the button "Step" the bot(green circle) moves towards the target(orange circle). Each node the bot goes though
+turns blue, meaning it reached this node before it expired. The numbers above the nodes are the weights of the edges an the
+numbers below each node is their weight. After each step the weight of the nodes that have not yet been visited is reduced
+by the weight of the edge the bot traversed.
+
+The way the bot chooses where to move is in the file LineGraph.py. visualize_graph.py is generated just for the graph.
 
 ### **THIS IS AN EARLY VERSION**
 
