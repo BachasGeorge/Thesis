@@ -153,6 +153,3 @@ Deadlines and weights must not be negative.
 2,3,4,5        weight of the edge center–leaf, same order
 ```
 (`inputs/star_example.txt`)
-
-
-```
