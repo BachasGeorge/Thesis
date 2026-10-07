@@ -1,36 +1,158 @@
-# **Node Traversing through different types of graphs**
+# Graph Exploration with Deadlines
 
-The subject of this thesis is the implementation of algorithms for solving the problem of moving between nodes in
-various types of graphs. There are different implementations, each one tries to either solve or find the best possible
-movement for a bot to move between the maximum numbers of nodes possible, with the best case scenario being to move
-through all of them.
+Simulations of a **single robot exploring a graph whose nodes have deadlines**.
+Every edge has a travel time and every node has a deadline: a node counts only
+if the robot reaches it **at or before** its deadline. For each graph type the
+program answers two questions:
 
-## **Line Graph Implementation**
+1. **Complete solution** – can *every* node be visited on time? If yes, what is
+   the route (and, for the line, the fastest such route)?
+2. **Best effort** – if not, what route visits the **largest possible number**
+   of nodes on time?
 
-The idea here is that we have a line graph with nodes where the bot tries to reach as many nodes as possible before they
-expire with the least moves possible. In order to run the simulation you need to have Python installed (the version I used
-is 3.14), the files LineGraph.py and visualize_graph.py. To run the simulation put both files in the same folder and
-run in the command prompt the line 'python visualize_graph.py'. A window will pop, and you will see something like this:
+The route is then replayed step by step in a small desktop window.
 
-<img width="1400" height="500" alt="Figure_1" src="https://github.com/user-attachments/assets/4fa06b51-28a8-4c0c-b3b2-5f80952cfb63" />
+---
 
-By pressing the button "Step" the bot(green circle) moves towards the target(orange circle). Each node the bot goes though
-turns blue, meaning it reached this node before it expired. The numbers above the nodes are the weights of the edges an the
-numbers below each node is their weight. After each step the weight of the nodes that have not yet been visited is reduced
-by the weight of the edge the bot traversed.
+## Based on
 
-The way the bot chooses where to move is in the file LineGraph.py. visualize_graph.py is generated just for the graph.
+| Paper | Used for |
+|---|---|
+| J. Czyzowicz, M. Godon, E. Kranakis, A. Labourel, E. Markou – *Exploring Graphs with Time Constraints by Unreliable Collections of Mobile Robots* (SOFSEM 2018) | **Line**, complete solution: Algorithm 1 (snapshot graph, shortest-time tree) |
+| S. Das, N. Giachoudis, F. L. Luccio, E. Markou – *Deadlines* | **Star**: Algorithm 1 (complete) and Algorithm 3 (best effort). **2-star**: Algorithm 2 (complete). Problem 2 of this paper is also the goal of the line's best-effort version |
+| S. Kanellopoulos, C. Pergaminelis, E. Markou et al. – *Finite Pinwheel Scheduling: the k-Visits Problem* | Background on scheduling with deadlines |
+| R. Holte, A. Mok, L. Rosier, I. Tulchinsky, D. Varvel – *The Pinwheel: A Real-Time Scheduling Problem* | Background on scheduling with deadlines |
 
-### **THIS IS AN EARLY VERSION**
+All four papers are in `Research material/`.
 
-The current state is really early and the way the bot moves is by always choosing the nearest end of the graph to move towards
-and then sweeping the rest of the graph towards the other end. This way, if no node expires, the steps needed for the solution
-are "n-1 + min(p, n-1-p)" , where n is the number of nodes and p is the index of the node the bot starts from.
+---
 
-In the current state the weight of the edges is picked randomly between 3 and 5 and the weight of the nodes is between 80-100.
-The number of notes is 18 (so they fit in the window). What needs to get "fixed" is how we decide the weights.
+## How it works (short version)
 
-!!! IMPORTANT !!!
-Before the bot starts moving we check if a node expires. If a node does expire a warning is printed. This will be changed later
-and a new way of picking how to traverse the path will be implimanted.
+### Line
+The robot starts at a chosen node. Whatever it does, the set of explored nodes
+is always one continuous interval around the start, so every possible route is a
+path in the paper's *snapshot graph* (state = explored interval + which end the
+robot is at).
 
+- **Complete solution** – exactly the paper's Algorithm 1: a layer-by-layer
+  shortest-time search that only allows moves meeting the new node's deadline.
+- **Best effort** (our extension) – the same search, but a late node does not
+  stop the robot (it can pass through it, it just doesn't count). The search keeps
+  the best time for every possible on-time count, then picks the route with the
+  **most on-time nodes**, and among those the **fastest**. The robot stops as soon
+  as nothing more can be gained, so it never walks out to an end node that has
+  already expired. Expired nodes *between* useful ones are still walked through
+  (on a line there is no way around them).
+
+### Star
+One center, leaves connected only to the center; the robot starts at the center
+and returns through it between leaves.
+
+- **Complete solution** – Algorithm 1: visit the leaves in non-decreasing order
+  of `deadline + edge weight`. If that order fails, no order can succeed.
+- **Best effort** – Algorithm 3: go through the leaves from lightest edge to
+  heaviest and keep a leaf only if the kept set can still all be visited on time
+  (checked with Algorithm 1). Leaves that are not kept are never visited.
+  *Small fix vs. the paper:* the paper adds the first leaf without checking it,
+  which is wrong if that leaf alone is unreachable; here every leaf is checked.
+
+---
+
+## Repository structure
+
+```
+line_exploration.py          line algorithm (complete + best effort)
+input_handler.py             reads a line graph from a .txt file
+line_exploration_viz.py      line visualizer            <- run this
+star_exploration.py          star algorithm (complete + best effort)
+star_input_handler.py        reads a star graph from a .txt file
+star_exploration_viz.py      star visualizer            <- run this
+inputs/                      example input files
+Research material/           the papers
+```
+
+---
+
+## Running it on your computer
+
+### 1. Install Python
+Python **3** is required (developed with Python 3.14). Download it from
+[python.org](https://www.python.org/downloads/).
+
+The windows use **tkinter**, which comes with Python on most systems:
+
+- **Windows** – included with the python.org installer (keep the
+  *tcl/tk and IDLE* option ticked). On the first installer screen also tick
+  **"Add python.exe to PATH"**.
+- **macOS** – included with the python.org installer. If you use Homebrew's
+  Python instead: `brew install python-tk`.
+- **Linux** – usually a separate package, e.g. on Ubuntu/Debian:
+  `sudo apt install python3-tk`.
+
+Check that it works:
+```bash
+python -m tkinter
+```
+A small test window should open. (On macOS/Linux you may need to type
+`python3` instead of `python` in all commands.)
+
+No other packages are needed – the code only uses Python's standard library.
+
+### 2. Get the code
+With git:
+```bash
+git clone https://github.com/BachasGeorge/Thesis.git
+cd Thesis
+```
+Or on GitHub click **Code → Download ZIP**, unzip it, and open a terminal in the
+unzipped folder.
+
+### 3. Run a simulation
+From inside the folder:
+```bash
+python line_exploration_viz.py      # line graph
+python star_exploration_viz.py      # star graph
+```
+
+A welcome message is printed with the expected file format. Press
+**Enter**, choose a graph file in the window that opens (it starts
+in `inputs/`), and the visualizer appears. If the file is invalid,
+the error is printed and you can choose another one; closing the file window exits.
+
+
+In the visualizer, **STEP** moves the robot one node/leaf forward and **RESET**
+starts over.
+
+| Colour | Meaning |
+|---|---|
+| Blue   | robot's current position |
+| Green  | visited on time |
+| Orange | visited late – doesn't count (line only; the robot had to pass through it) |
+| Red    | expired before the robot got there |
+| Grey   | not visited yet |
+
+---
+
+## Input file format
+
+Plain `.txt` files, values separated by commas. Blank lines are ignored.
+Deadlines and weights must not be negative.
+
+### Line – 3 lines
+```
+1              start node (0-based index)
+7,5,6,11,13    deadline of each node, left to right
+3,1,2,2        edge weights between consecutive nodes (one fewer than nodes)
+```
+(`inputs/line_paper_figure1.txt` – the Figure 1 example from the line paper.)
+
+### Star – 2 lines
+```
+6,9,14,25      deadline of each leaf (leaf 1, leaf 2, ...)
+2,3,4,5        weight of the edge center–leaf, same order
+```
+(`inputs/star_example.txt`)
+
+
+```

@@ -1,0 +1,6 @@
+__pycache__/
+.venv/
+.idea/
+two_star_*.py
+Research material/
+anafora.docx
